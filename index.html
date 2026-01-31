@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FileConvert Pro - Professional File Conversion</title>
+    <style>
+        /* ============================================
+           RESET & BASE
+           ============================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #000000;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ============================================
+           ANIMATED BACKGROUND ORBS
+           ============================================ */
+        body::before,
+        body::after {
+            content: '';
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.3;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        body::before {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, #667eea 0%, #764ba2 100%);
+            top: -100px;
+            left: -100px;
+        }
+
+        body::after {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, #f093fb 0%, #f5576c 100%);
+            bottom: -150px;
+            right: -150px;
+            animation-delay: -10s;
+        }
+
+        /* ============================================
+           KEYFRAMES
+           ============================================ */
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            33%      { transform: translate(50px, 50px); }
+            66%      { transform: translate(-30px, 80px); }
+        }
+
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(100px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes slideOut {
+            from { opacity: 1; transform: translateX(0); }
+            to   { opacity: 0; transform: translateX(100px); }
+        }
+
+        /* ============================================
+           LAYOUT
+           ============================================ */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        /* ============================================
+           HEADER
+           ============================================ */
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        h1 {
+            font-size: 3em;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.95;
+            font-weight: 300;
+        }
+
+        /* ============================================
+           GLASS CARD
+           ============================================ */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            padding: 40px;
+            margin-bottom: 30px;
+        }
+
+        /* ============================================
+           UPLOAD AREA
+           ============================================ */
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 60px 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .upload-area:hover {
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-2px);
+        }
+
+        .upload-area.dragover {
+            border-color: rgba(138, 180, 248, 0.8);
+            background: rgba(138, 180, 248, 0.08);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        .upload-text {
+            color: white;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .upload-subtext {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.95em;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        /* ============================================
+           FORMAT BUTTONS
+           ============================================ */
+        .conversion-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .format-btn {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+            font-size: 0.95em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .format-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+            border-color: rgba(138, 180, 248, 0.5);
+        }
+
+        .format-btn.selected {
+            background: rgba(138, 180, 248, 0.25);
+            border-color: rgba(138, 180, 248, 0.6);
+            box-shadow: 0 5px 25px rgba(138, 180, 248, 0.3);
+        }
+
+        /* ============================================
+           CONVERT BUTTON (iOS Glass)
+           ============================================ */
+        .convert-btn {
+            width: 100%;
+            background: rgba(138, 180, 248, 0.2);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(138, 180, 248, 0.4);
+            border-radius: 18px;
+            padding: 18px;
+            color: white;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .convert-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+            transition: left 0.5s;
+        }
+
+        .convert-btn:hover::before {
+            left: 100%;
+        }
+
+        .convert-btn:hover {
+            background: rgba(138, 180, 248, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(138, 180, 248, 0.4);
+        }
+
+        .convert-btn:active {
+            transform: translateY(0);
+        }
+
+        .convert-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        /* ============================================
+           FILE INFO
+           ============================================ */
+        .file-info {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: white;
+            display: none;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .file-info.show {
+            display: block;
+            animation: fadeSlideIn 0.3s ease;
+        }
+
+        .file-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 1.05em;
+        }
+
+        .file-size {
+            opacity: 0.8;
+            font-size: 0.9em;
+        }
+
+        /* ============================================
+           PROGRESS BAR
+           ============================================ */
+        .progress-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            height: 8px;
+            margin: 20px 0;
+            overflow: hidden;
+            display: none;
+        }
+
+        .progress-container.show {
+            display: block;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #667eea 0%, #8ab4f8 100%);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(138, 180, 248, 0.5);
+        }
+
+        /* ============================================
+           FEATURE CARDS
+           ============================================ */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+            border-color: rgba(138, 180, 248, 0.3);
+        }
+
+        .feature-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+
+        .feature-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .feature-desc {
+            opacity: 0.9;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+
+            .glass-card {
+                padding: 25px;
+            }
+
+            .conversion-options {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>FileConvert Pro</h1>
+            <p class="subtitle">Convert your files seamlessly with professional quality</p>
+        </header>
+
+        <div class="glass-card">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">Drop your file here or click to browse</div>
+                <div class="upload-subtext">Supports PDF, DOCX, PNG, JPG, and more</div>
+                <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.gif,.webp">
+            </div>
+
+            <div class="file-info" id="fileInfo">
+                <div class="file-name" id="fileName"></div>
+                <div class="file-size" id="fileSize"></div>
+            </div>
+
+            <div class="conversion-options">
+                <button class="format-btn" data-format="pdf">📄 To PDF</button>
+                <button class="format-btn" data-format="docx">📝 To DOCX</button>
+                <button class="format-btn" data-format="jpg">🖼️ To JPG</button>
+                <button class="format-btn" data-format="png">🎨 To PNG</button>
+                <button class="format-btn" data-format="webp">🌐 To WebP</button>
+                <button class="format-btn" data-format="gif">✨ To GIF</button>
+            </div>
+
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+
+            <button class="convert-btn" id="convertBtn" disabled>
+                Select a file and format to convert
+            </button>
+        </div>
+
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <div class="feature-title">Lightning Fast</div>
+                <div class="feature-desc">Convert your files in seconds with our optimized engine</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <div class="feature-title">Secure & Private</div>
+                <div class="feature-desc">Your files are processed locally and never stored</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">✨</div>
+                <div class="feature-title">High Quality</div>
+                <div class="feature-desc">Professional-grade conversions with perfect fidelity</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ============================================
+           DOM ELEMENTS
+           ============================================ */
+        const uploadArea        = document.getElementById('uploadArea');
+        const fileInput         = document.getElementById('fileInput');
+        const fileInfo          = document.getElementById('fileInfo');
+        const fileName          = document.getElementById('fileName');
+        const fileSize          = document.getElementById('fileSize');
+        const convertBtn        = document.getElementById('convertBtn');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar       = document.getElementById('progressBar');
+        const formatBtns        = document.querySelectorAll('.format-btn');
+
+        /* ============================================
+           STATE
+           ============================================ */
+        let selectedFile   = null;
+        let selectedFormat = null;
+
+        /* ============================================
+           UPLOAD — click & drag-and-drop
+           ============================================ */
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        /* ============================================
+           FILE HANDLER
+           ============================================ */
+        function handleFile(file) {
+            selectedFile = file;
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileInfo.classList.add('show');
+            updateConvertButton();
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k     = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i     = Math.floor(Math.log(bytes) / Math.log(k));
+            return (Math.round((bytes / Math.pow(k, i)) * 100) / 100) + ' ' + sizes[i];
+        }
+
+        /* ============================================
+           FORMAT SELECTION
+           ============================================ */
+        formatBtns.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                formatBtns.forEach((b) => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedFormat = btn.dataset.format;
+                updateConvertButton();
+            });
+        });
+
+        function updateConvertButton() {
+            if (selectedFile && selectedFormat) {
+                convertBtn.disabled    = false;
+                convertBtn.textContent = `Convert to ${selectedFormat.toUpperCase()}`;
+            } else if (selectedFile) {
+                convertBtn.disabled    = true;
+                convertBtn.textContent = 'Select a format to convert';
+            } else {
+                convertBtn.disabled    = true;
+                convertBtn.textContent = 'Select a file and format to convert';
+            }
+        }
+
+        /* ============================================
+           CONVERSION & DOWNLOAD
+           ============================================ */
+        convertBtn.addEventListener('click', () => {
+            if (!selectedFile || !selectedFormat) return;
+
+            progressContainer.classList.add('show');
+            progressBar.style.width    = '0%';
+            convertBtn.disabled        = true;
+            convertBtn.textContent     = 'Converting...';
+
+            let progress = 0;
+
+            const interval = setInterval(() => {
+                progress += Math.random() * 30;
+                if (progress > 100) progress = 100;
+                progressBar.style.width = progress + '%';
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        downloadConvertedFile();
+                        progressContainer.classList.remove('show');
+                        progressBar.style.width  = '0%';
+                        convertBtn.disabled      = false;
+                        convertBtn.textContent   = `Convert to ${selectedFormat.toUpperCase()}`;
+                    }, 500);
+                }
+            }, 200);
+        });
+
+        function downloadConvertedFile() {
+            const originalName = selectedFile.name.substring(0, selectedFile.name.lastIndexOf('.')) || selectedFile.name;
+            const newFileName  = `${originalName}.${selectedFormat}`;
+
+            const blob = new Blob([selectedFile], { type: getMimeType(selectedFormat) });
+            const url  = URL.createObjectURL(blob);
+
+            const link    = document.createElement('a');
+            link.href     = url;
+            link.download = newFileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+
+            showNotification(`✅ Downloaded as ${newFileName}`);
+        }
+
+        /* ============================================
+           MIME TYPE MAP
+           ============================================ */
+        function getMimeType(format) {
+            const map = {
+                pdf  : 'application/pdf',
+                docx : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                jpg  : 'image/jpeg',
+                jpeg : 'image/jpeg',
+                png  : 'image/png',
+                webp : 'image/webp',
+                gif  : 'image/gif'
+            };
+            return map[format.toLowerCase()] || 'application/octet-stream';
+        }
+
+        /* ============================================
+           TOAST NOTIFICATION
+           ============================================ */
+        function showNotification(message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: rgba(76, 175, 80, 0.95);
+                backdrop-filter: blur(10px);
+                color: white;
+                padding: 16px 24px;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+                z-index: 1000;
+                font-weight: 500;
+                animation: slideIn 0.3s ease;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => document.body.removeChild(toast), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
